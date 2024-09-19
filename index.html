@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>剪刀石頭布遊戲</title>
+    <!-- 導入 SweetAlert2 的 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            margin: 0;
+            padding-top: 20px;
+            background-color: #b2b2f7;
+            /* 淡紫色背景 */
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+        }
+
+        button {
+            font-size: 20px;
+            margin: 10px;
+            padding: 20px;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #333;
+            background-color: #87CEEB;
+            color: white;
+            transition: background-color 0.3s, transform 0.3s, font-size 0.3s;
+            /* 增加字體大小的過渡效果 */
+        }
+
+        /* 懸停時增大圖示並更改背景色 */
+        button:hover {
+            background-color: #1E90FF;
+            transform: scale(1.1);
+            font-size: 25px;
+            /* 懸停時圖示變大 */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: black;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>剪刀石頭布遊戲 🎮</h1>
+
+    <div class="button-container">
+        <button onclick="playGame('剪刀')">✌️ 剪刀</button>
+        <button onclick="playGame('石頭')">✊ 石頭</button>
+        <button onclick="playGame('布')">✋ 布</button>
+    </div>
+
+    <h2 id="result">來吧！選擇一個出手！✊✋✌️</h2>
+
+    <!-- 音樂文件 -->
+    <audio id="winSound" src="https://www.myinstants.com/media/sounds/tadaa.mp3" preload="auto"></audio>
+    <audio id="loseSound" src="https://www.myinstants.com/media/sounds/sad-trombone.mp3" preload="auto"></audio>
+    <audio id="drawSound" src="https://www.myinstants.com/media/sounds/pop-sound-effect.mp3" preload="auto"></audio>
+
+
+
+
+    <script>
+        // 追蹤玩家和電腦的勝利次數
+        let playerWins = 0;
+        let computerWins = 0;
+
+        function playGame(playerChoice) {
+            const choices = ['剪刀', '石頭', '布'];
+            const computerChoice = choices[Math.floor(Math.random() * 3)];
+
+            let result = '';
+            let resultColor = '';
+
+            // 停止所有音樂
+            stopAllSounds();
+
+            if (playerChoice === computerChoice) {
+                result = '平手！你們真有默契！😅';
+                resultColor = 'gray';
+                document.getElementById('drawSound').play(); // 撥放平手音樂
+            } else if (
+                (playerChoice === '剪刀' && computerChoice === '布') ||
+                (playerChoice === '石頭' && computerChoice === '剪刀') ||
+                (playerChoice === '布' && computerChoice === '石頭')
+            ) {
+                result = '你贏了！🎉太棒了！';
+                resultColor = 'green';
+                playerWins++; // 玩家勝利次數加 1
+                document.getElementById('winSound').play(); // 撥放勝利音樂
+            } else {
+                result = '你輸了！😢 再接再厲！';
+                resultColor = 'red';
+                computerWins++; // 電腦勝利次數加 1
+                document.getElementById('loseSound').play(); // 撥放失敗音樂
+            }
+
+            // 更新回合結果的顏色
+            const resultElement = document.getElementById('result');
+            resultElement.textContent = `你選了：${playerChoice}，電腦選了：${computerChoice}。${result}`;
+            resultElement.style.color = resultColor;
+
+            // 檢查是否有人贏得 3 次
+            if (playerWins === 3 || computerWins === 3) {
+                const winner = playerWins === 3 ? '玩家' : '電腦';
+                Swal.fire({
+                    title: '遊戲結束',
+                    text: `${winner} 獲勝了！🎉`,
+                    icon: 'success',
+                    confirmButtonText: '重新開始'
+                }).then(() => {
+                    resetGame(); // 重置遊戲
+                });
+            } else {
+                // 使用 SweetAlert2 顯示當前回合結果，並變更顯示結果的顏色
+                Swal.fire({
+                    title: '回合結果',
+                    html: `
+                你選了：<b>${playerChoice}</b>，電腦選了：<b>${computerChoice}</b>。<br>
+                <b style="color: ${resultColor};">${result}</b><br><br>
+                玩家勝利次數：<b style="color: green;">${playerWins}</b><br>
+                電腦勝利次數：<b style="color: red;">${computerWins}</b>
+            `,
+                    icon: resultColor === 'green' ? 'success' : resultColor === 'red' ? 'error' : 'info',
+                    confirmButtonText: '繼續遊戲'
+                });
+            }
+        }
+
+        // 停止所有音樂
+        function stopAllSounds() {
+            document.getElementById('winSound').pause();
+            document.getElementById('loseSound').pause();
+            document.getElementById('drawSound').pause();
+            document.getElementById('winSound').currentTime = 0;
+            document.getElementById('loseSound').currentTime = 0;
+            document.getElementById('drawSound').currentTime = 0;
+        }
+
+        // 重置遊戲
+        function resetGame() {
+            playerWins = 0;
+            computerWins = 0;
+            const resultElement = document.getElementById('result');
+            resultElement.textContent = '來吧！選擇一個出手！✊✋✌️';
+            resultElement.style.color = 'black'; // 重置結果顏色
+        }
+    </script>
+
+</body>
+
+</html>
